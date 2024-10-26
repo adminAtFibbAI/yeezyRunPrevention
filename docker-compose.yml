@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  r-service:
+    build:
+      context: .
+      dockerfile: docker/r-service/Dockerfile
+    container_name: yeezy-r-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server/src:/app/src
+      - ./server/tests:/app/tests
+    environment:
+      - R_CONFIG_ACTIVE=development
+
+  web:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: yeezy-web
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_R_SERVICE_URL=http://r-service:8000
+    depends_on:
+      - r-service

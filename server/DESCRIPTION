@@ -1,0 +1,17 @@
+Package: yeezyrunprevention
+Title: Yeezy Run Prevention Analytics Service
+Version: 0.1.0
+Description: Advanced baseball analytics R service for run prevention analysis
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    plumber,
+    tidyverse,
+    caret,
+    xgboost,
+    baseballr,
+    mgcv,
+    prophet,
+    testthat
+RoxygenNote: 7.1.2

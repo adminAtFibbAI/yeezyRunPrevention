@@ -1,0 +1,95 @@
+class CacheService {
+  constructor() {
+    this.cache = new Map();
+    this.timeouts = new Map();
+  }
+
+  // Cache configuration
+  static CONFIG = {
+    DEFAULT_TTL: 5 * 60 * 1000, // 5 minutes
+    MAX_ITEMS: 100,
+    PLAYER_STATS_TTL: 30 * 60 * 1000, // 30 minutes
+    LEAGUE_AVERAGES_TTL: 24 * 60 * 60 * 1000 // 24 hours
+  };
+
+  set(key, value, ttl = CacheService.CONFIG.DEFAULT_TTL) {
+    // Implement LRU eviction if cache is full
+    if (this.cache.size >= CacheService.CONFIG.MAX_ITEMS) {
+      const oldestKey = this.cache.keys().next().value;
+      this.delete(oldestKey);
+    }
+
+    // Set cache item
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now()
+    });
+
+    // Set expiration
+    if (this.timeouts.has(key)) {
+      clearTimeout(this.timeouts.get(key));
+    }
+    this.timeouts.set(key, setTimeout(() => this.delete(key), ttl));
+
+    return value;
+  }
+
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    // Check if item is still valid
+    const age = Date.now() - item.timestamp;
+    if (age > CacheService.CONFIG.DEFAULT_TTL) {
+      this.delete(key);
+      return null;
+    }
+
+    return item.value;
+  }
+
+  delete(key) {
+    this.cache.delete(key);
+    if (this.timeouts.has(key)) {
+      clearTimeout(this.timeouts.get(key));
+      this.timeouts.delete(key);
+    }
+  }
+
+  clear() {
+    this.cache.clear();
+    this.timeouts.forEach(timeout => clearTimeout(timeout));
+    this.timeouts.clear();
+  }
+
+  // Helper method to generate cache keys
+  static generateKey(action, params) {
+    return `${action}_${JSON.stringify(params)}`;
+  }
+}
+
+export const cacheService = new CacheService();
+
+// Middleware to integrate with Redux
+export const cacheMiddleware = store => next => action => {
+  if (action.meta?.cache === false) {
+    return next(action);
+  }
+
+  const key = CacheService.generateKey(action.type, action.payload);
+  const cachedValue = cacheService.get(key);
+
+  if (cachedValue) {
+    return Promise.resolve(cachedValue);
+  }
+
+  const result = next(action);
+
+  if (result instanceof Promise) {
+    result.then(value => {
+      cacheService.set(key, value);
+    });
+  }
+
+  return result;
+};
