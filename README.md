@@ -1,6 +1,9 @@
 # yeezyRunPrevention
-automating run prevention tasks for mlb teams
-i am currently a milb bullpen catcher looking for mlb bullpen catcher opportunities. I have a cs degree from stanford and extensive experience working and managing data scientists
+- automating run prevention tasks for mlb teams
+- i am currently a milb bullpen catcher looking for mlb bullpen catcher opportunities. I have a cs degree from stanford and extensive experience working and managing data scientists
+
+#demo 
+https://yeezyrunpreventiondemo.netlify.app/
 
 # Baseball Analytics Dashboard
 
